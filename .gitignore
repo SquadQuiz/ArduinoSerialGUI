@@ -1,0 +1,11 @@
+/build
+
+# WINDOW
+/*.bat
+/.vscode
+
+# MACOS General
+.DS_Store
+.AppleDouble
+.LSOverride
+
