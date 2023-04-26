@@ -3,6 +3,7 @@
 #include "./ui_mainwindow.h"
 
 #include <QString>
+#include <QMessageBox>
 #include <QtSerialPort/QSerialPort>
 #include <QtSerialPort/QSerialPortInfo>
 
@@ -18,7 +19,6 @@ MainWindow::MainWindow(QWidget *parent)
     {
         ui->comboBox->addItem(info.portName());
     }
-
 }
 
 MainWindow::~MainWindow()
@@ -28,35 +28,91 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_openBtn_clicked()
 {
+    // Initialize serial constructor.
     serial.setPortName(ui->comboBox->currentText());
     serial.setBaudRate(serial.Baud9600);
     serial.setDataBits(serial.Data8);
     serial.setStopBits(serial.OneStop);
     serial.setFlowControl(serial.NoFlowControl);
     connect(&serial, SIGNAL(readyRead()), this, SLOT(readData()));
+
     if(serial.open(QIODevice::ReadWrite))
     {
-        ui->textEdit->clear();
-        ui->textEdit->append("Open port Success\n");
+        ui->receivedTextBox->clear();
+        ui->receivedTextBox->append("Open COM Port Success!\n");
     }
     else
     {
-        ui->textEdit->append("Unable to Open COMPORT");
+        ui->receivedTextBox->append("Unable to Open COM Port\n");
     }
 }
 
 void MainWindow::on_closeBtn_clicked()
 {
     serial.close();
+    ui->receivedTextBox->insertPlainText("Closed COM Port\n");
 }
 
 void MainWindow::on_sendBtn_clicked()
 {
-    serial.write(ui->lineEdit->text().toUtf8());
+    if(!serial.isOpen())
+    {
+        ui->receivedTextBox->insertPlainText("ERROR: COM Port Non-Connect\n");
+    }
+    else
+    {
+        serial.write(ui->lineEdit->text().toUtf8());
+        ui->receivedTextBox->insertPlainText("Send :" + ui->lineEdit->text() + "\n");
+    }
 }
 
 void MainWindow::readData()
 {
     QByteArray data = serial.readAll();
-    ui->textEdit->insertPlainText(QString(data));
+    ui->receivedTextBox->insertPlainText("Received: " + QString(data));
 }
+
+void MainWindow::on_ledOnBtn_clicked()
+{
+    if(!serial.isWritable())
+    {
+        QMessageBox *msgBox = new QMessageBox(this);
+        msgBox->setText("Please Connect First");
+        msgBox->setWindowTitle("Warning");
+        msgBox->exec();
+    }
+    else
+    {
+        serial.write("H");
+        ui->receivedTextBox->insertPlainText("Button: " + QString("Turn On") + "\n");
+    }
+}
+
+void MainWindow::on_ledOffBtn_clicked()
+{
+    if(!serial.isWritable())
+    {
+        QMessageBox *msgBox = new QMessageBox(this);
+        msgBox->setText("Please Connect First");
+        msgBox->setWindowTitle("Warning");
+        msgBox->exec();
+    }
+    else
+    {
+        serial.write("L");
+        ui->receivedTextBox->insertPlainText("Button: " + QString("Turn Off") + "\n");
+    }
+}
+
+
+void MainWindow::on_clearTextSend_clicked()
+{
+    ui->lineEdit->clear();
+}
+
+
+void MainWindow::on_clearTextBox_clicked()
+{
+    ui->receivedTextBox->clear();
+}
+

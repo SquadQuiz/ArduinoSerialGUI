@@ -28,6 +28,14 @@ private slots:
 
     void readData();
 
+    void on_ledOnBtn_clicked();
+
+    void on_ledOffBtn_clicked();
+
+    void on_clearTextSend_clicked();
+
+    void on_clearTextBox_clicked();
+
 private:
     Ui::MainWindow *ui;
 };
